@@ -1,5 +1,14 @@
-CREATE DATABASE IF NOT EXISTS wordpress;
-CREATE USER IF NOT EXISTS 'mbaypara'@'%' IDENTIFIED BY '1234';
-GRANT ALL PRIVILEGES ON wordpress.* TO 'mbaypara'@'%';
+-- Veritabanı oluşturma
+CREATE DATABASE IF NOT EXISTS ${MYSQL_DATABASE};
+
+-- Kullanıcı oluşturma
+CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'%' IDENTIFIED BY '${MYSQL_PASSWORD}';
+
+-- Kullanıcıya tüm ayrıcalıkları verme
+GRANT ALL PRIVILEGES ON ${MYSQL_DATABASE}.* TO '${MYSQL_USER}'@'%';
+
+-- İzinlerin etkinleştirilmesi
 FLUSH PRIVILEGES;
-ALTER USER 'root'@'localhost' IDENTIFIED BY 'root1234';
+
+-- Root şifresini değiştirme
+ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';

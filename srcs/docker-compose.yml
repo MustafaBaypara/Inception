@@ -77,13 +77,13 @@ volumes:
     driver: local
     driver_opts:
       type: none
-      device: /home/data/mysql
+      device: /home/mbaypara/data/mysql
       o: bind
   wordpress_data:
     driver: local
     driver_opts:
       type: none
-      device: /home/data/wordpress
+      device: /home/mbaypara/data/wordpress
       o: bind
 
 networks:

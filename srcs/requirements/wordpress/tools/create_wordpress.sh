@@ -8,7 +8,7 @@ until mysqladmin ping -h"$MYSQL_HOSTNAME" --silent; do
     sleep 2
 done
 
-if [ -f ./wp-config.php ]; then
+if [ ! -f ./wp-config.php ]; then
     echo "Downloading WordPress..."
     wget https://wordpress.org/latest.tar.gz
     tar -xzf latest.tar.gz

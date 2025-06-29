@@ -1,20 +1,19 @@
 FROM debian:bullseye
 
-# Paketleri kur
-RUN apt-get update && \
-    apt-get install -y mariadb-server && \
-    mkdir -p /var/run/mysqld && \
-    chown -R mysql:mysql /var/run/mysqld
+ENV DEBIAN_FRONTEND=noninteractive
 
-# Yapılandırma ve init script'lerini kopyala
-COPY ./conf/50-server.cnf /etc/mysql/mariadb.conf.d/
-COPY ./tools /var/www/
+RUN apt-get update && apt-get install -y \
+    mariadb-server \
+    mariadb-client \
+    && rm -rf /var/lib/apt/lists/*
 
-# Veritabanını init eden script'i ayrı çalıştırmak yerine entrypoint'e al
-COPY ./tools/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+# Konfigürasyon dosyasını kopyala
+COPY conf/50-server.cnf /etc/mysql/50-server.cnf
+
+# Başlangıç scriptini kopyala ve çalıştırılabilir yap
+COPY tools/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 EXPOSE 3306
 
-ENTRYPOINT ["/entrypoint.sh"]
-CMD ["mysqld"]
+CMD ["/usr/local/bin/entrypoint.sh"]

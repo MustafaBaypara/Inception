@@ -1,20 +1,27 @@
 #!/bin/bash
 
-# MariaDB'yi ilk kez başlatmak için init db dizinini kontrol et
+# Eğer veritabanı daha önce kurulmamışsa:
 if [ ! -d "/var/lib/mysql/mysql" ]; then
-    echo "Initializing database..."
-    mysql_install_db --user=mysql > /dev/null
+    echo "Veritabanı başlatılıyor..."
+    mysql_install_db --user=mysql --ldata=/var/lib/mysql
 
-    # mysqld'yi arka planda başlat
+    echo "Geçici MariaDB sunucusu başlatılıyor..."
     mysqld_safe --skip-networking &
     sleep 5
 
-    echo "Running initial SQL script..."
-    mysql < /var/www/initial_db.sql
+    echo "Kullanıcılar ve veritabanı oluşturuluyor..."
+    mysql -e "CREATE DATABASE IF NOT EXISTS \`${MYSQL_DATABASE}\`;"
+    mysql -e "CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'%' IDENTIFIED BY '${MYSQL_PASSWORD}';"
+    mysql -e "GRANT ALL PRIVILEGES ON \`${MYSQL_DATABASE}\`.* TO '${MYSQL_USER}'@'%';"
+    mysql -e "FLUSH PRIVILEGES;"
 
-    # mysqld'yi durdur
+    echo "Kurulum tamamlandı."
+    
+    # Geçici mysqld'yi kapat
     mysqladmin shutdown
+    sleep 
 fi
 
-# Son olarak gerçek mysqld başlatılır
-exec mysqld
+# Ana mysqld'yi başlat (sadece bir tane)
+echo "mysqld başlatılıyor..."
+exec mysqld_safe

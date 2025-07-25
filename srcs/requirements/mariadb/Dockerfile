@@ -1,19 +1,12 @@
 FROM debian:bullseye
 
-ENV DEBIAN_FRONTEND=noninteractive
-
-RUN apt-get update && apt-get install -y \
-    mariadb-server \
-    mariadb-client \
-    && rm -rf /var/lib/apt/lists/*
-
-# Konfigürasyon dosyasını kopyala
-COPY conf/50-server.cnf /etc/mysql/50-server.cnf
-
-# Başlangıç scriptini kopyala ve çalıştırılabilir yap
-COPY tools/entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+RUN apt-get update && apt-get install -y mariadb-server
 
 EXPOSE 3306
 
-CMD ["/usr/local/bin/entrypoint.sh"]
+COPY ./conf/50-server.cnf /etc/mysql/mariadb.conf.d/
+COPY ./tools /var/www/
+
+RUN service mariadb start && mariadb < /var/www/initial_db.sql && rm -f /var/www/initial_db.sql;
+
+CMD ["mysqld"]

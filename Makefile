@@ -1,25 +1,26 @@
-DC := docker-compose -f ./srcs/docker-compose.yml
+# -f: --file
+# -q: --quiet
+# -a: --all
+# $$: escape $ for shell
 
 all:
-	@mkdir -p /home/mbaypara/data/wordpress
-	@mkdir -p /home/mbaypara/data/mysql
-	@$(DC) up -d --build
+	@mkdir -p $(HOME)/data/wordpress
+	@mkdir -p $(HOME)/data/mariadb
+	@docker-compose -f ./srcs/docker-compose.yml up -d
 
 down:
-	@$(DC) down
+	@docker-compose -f ./srcs/docker-compose.yml down
 
-re: clean all
-	@echo "Rebuild completed"
-
+re:
+	@docker-compose -f srcs/docker-compose.yml up -d --build
 
 clean:
-	@$(DC) down -v --remove-orphans
-	@docker rmi -f $$(docker images -q)
+	@docker stop $$(docker ps -qa);\
+	docker rm $$(docker ps -qa);\
+	docker rmi -f $$(docker images -qa);\
+	docker volume rm $$(docker volume ls -q);\
+	docker network rm $$(docker network ls -q);\
+	rm -rf $(HOME)/data/wordpress
+	rm -rf $(HOME)/data/mariadb
 
-clean-file:
-	@$(DC) down -v --remove-orphans
-	@docker rmi -f $$(docker images -q)
-	@rm -rf /home/mbaypara/data/wordpress
-	@rm -rf /home/mbaypara/data/mysql
-
-.PHONY: all down re clean
+.PHONY: all re down clean

@@ -1,91 +1,60 @@
+version: "3.5"
 
-version: '3'
+networks:
+  app-network:
+    name: app-network
+    driver: bridge
+
+volumes:
+  wp:
+    driver: local
+    name: wp
+    driver_opts:
+      type: none
+      o: bind
+      device: /${HOME}/data/wordpress
+  db:
+    driver: local
+    name: db
+    driver_opts:
+      type: none
+      o: bind
+      device: /${HOME}/data/mariadb
 
 services:
-
-  nginx:
-    container_name: nginx
-
-    build: ./requirements/nginx
-
-    depends_on:
-      - wordpress
-    
-    ports:
-      - 443:443
-    
-    volumes:
-      - wordpress_data:/var/www/html
-
-    restart: always
-
-    networks:
-      - network
-
   mariadb:
     container_name: mariadb
     build: ./requirements/mariadb
-    volumes:
-      - mariadb_data:/var/lib/mysql
-    networks:
-      - network
-    restart: always
     env_file:
       - .env
+    volumes:
+      - db:/var/lib/mysql
+    networks:
+      - app-network
+    restart: unless-stopped
 
   wordpress:
     container_name: wordpress
+    build: ./requirements/wordpress
+    env_file:
+      - .env
     depends_on:
       - mariadb
-    build:
-      context: ./requirements/wordpress
-      dockerfile: Dockerfile
-    restart: always
-    env_file:
-      - .env
     volumes:
-      - wordpress_data:/var/www/html
+      - wp:/var/www/html
     networks:
-      - network
-      
-  redis:
-    container_name: redis
-    build: ./requirements/bonus/redis
+      - app-network
+    restart: unless-stopped
+
+  nginx:
+    container_name: nginx
+    build: ./requirements/nginx
+    ports:
+      - "443:443"
     depends_on:
       - wordpress
-    ports:
-      - '6379:6379'
-    restart:
-      always
-    env_file:
-      - .env
     volumes:
-      - wordpress_data:/var/www/html
+      - wp:/var/www/html
     networks:
-      - network
-  adminer:
-    build: ./requirements/bonus/adminer
-    container_name: adminer
-    ports:
-      - "8000:8000"
-    networks:
-      - network
-    restart: always
-
-volumes:
-  mariadb_data:
-    driver: local
-    driver_opts:
-      type: none
-      device: /home/mbaypara/data/mysql
-      o: bind
-  wordpress_data:
-    driver: local
-    driver_opts:
-      type: none
-      device: /home/mbaypara/data/wordpress
-      o: bind
-
-networks:
-  network:
-    driver: bridge
+      - app-network
+    restart: unless-stopped

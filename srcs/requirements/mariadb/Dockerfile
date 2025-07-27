@@ -1,12 +1,11 @@
 FROM debian:bullseye
 
-RUN apt-get update && apt-get install -y mariadb-server
+RUN apt-get update && apt-get install -y mariadb-server gettext-base
+
+COPY ./tools /var/www/
+COPY ./conf/50-server.cnf /etc/mysql/mariadb.conf.d/
 
 EXPOSE 3306
 
-COPY ./conf/50-server.cnf /etc/mysql/mariadb.conf.d/
-COPY ./tools /var/www/
-
-RUN service mariadb start && mariadb < /var/www/initial_db.sql && rm -f /var/www/initial_db.sql;
-
+ENTRYPOINT ["/var/www/entrypoint.sh"]
 CMD ["mysqld"]
